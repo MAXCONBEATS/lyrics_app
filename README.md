@@ -23,6 +23,7 @@
 
 
 ## Структура проекта
+```text
 lib/
 ├── main.dart                   # Точка входа
 ├── app.dart                    # Настройка темы и маршрутизации
@@ -33,6 +34,18 @@ lib/
 │   ├── screens/                # Экраны (TracksScreen, AlbumsScreen, SongEditor...)
 │   └── widgets/                # Переиспользуемые виджеты
 └── utils/                      # Константы, утилиты
+```
+## 📦 Релизы
+
+Первый стабильный релиз: **[v1.00](https://github.com/MAXCONBEATS/lyrics_app/releases/tag/v1.00)** 🎉  
+Сборки для Windows и Android доступны в разделе Assets.
+
+| Платформа | Файл |
+|-----------|------|
+| Android   | [`lyrics_app.apk`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v1.00/lyrics_app.apk) (19 MB) |
+| Windows   | [`Lyrics_App.zip`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v1.00/Lyrics_App.zip) (12.7 MB) |
+
+Контрольные суммы (SHA256) указаны в описании релиза для проверки целостности файлов.
 
 ## Лицензия
 MIT License – используйте и модифицируйте свободно.
