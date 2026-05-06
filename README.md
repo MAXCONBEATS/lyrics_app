@@ -48,14 +48,17 @@ lyrics_app/
 ```
 ## 📦 Релизы
 
-Добавлен функционал для работы с ТГ каналами: **[v2.00](https://github.com/MAXCONBEATS/lyrics_app/releases/tag/v2.0)**
+Последняя стабильная версия: **[v2.0](https://github.com/MAXCONBEATS/lyrics_app/releases/tag/v2.0)**
 
-| Платформа | Файл |
-|-----------|------|
-| Android   | [`lyric_app.apk`](([https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/lyric_app.apk])) (78.4 MB) |
-| Windows   | [`Lyrics_App.zip`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.00/Lyrics_App.zip) (12.8 MB) |
+| Платформа | Файл | Описание |
+|-----------|------|----------|
+| Windows   | [`Lyrics_App.zip`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/Lyrics_App.zip) (12.8 MB) | Архив для запуска на Windows. Распакуйте и запустите `lyrics_app.exe`. |
+| Android   | [`lyric_app.apk`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/lyric_app.apk) (78.4 MB) | Установочный APK для Android (debug-версия). |
 
-Контрольные суммы (SHA256) указаны в описании релиза для проверки целостности файлов.
+> **Почему debug-версия для Android?**  
+> В релизной сборке на некоторых устройствах может не разрешаться домен `api.telegram.org` даже при включённом VPN. Debug-версия не имеет этого ограничения и стабильно отправляет текст в Telegram.
+
+Контрольные суммы (SHA256) доступны в описании релиза.
 
 ## 🔧 Настройка Telegram‑отправки
 
