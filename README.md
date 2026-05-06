@@ -52,7 +52,7 @@ lyrics_app/
 
 | Платформа | Файл |
 |-----------|------|
-| Android   | [`lyric_app.apk`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.00/lyrics_app.apk) (78.4 MB) |
+| Android   | [`lyric_app.apk`]((https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/lyric_app.apk)) (78.4 MB) |
 | Windows   | [`Lyrics_App.zip`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.00/Lyrics_App.zip) (12.8 MB) |
 
 Контрольные суммы (SHA256) указаны в описании релиза для проверки целостности файлов.
