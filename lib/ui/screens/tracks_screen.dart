@@ -6,6 +6,7 @@ import '../../services/database_service.dart';
 import '../../services/export_import_service.dart';
 import 'song_editor_screen.dart';
 import 'albums_screen.dart';
+import 'settings_screen.dart';
 
 class TracksScreen extends ConsumerStatefulWidget {
   const TracksScreen({super.key});
@@ -30,7 +31,8 @@ class _TracksScreenState extends ConsumerState<TracksScreen> {
     setState(() => _loading = true);
     try {
       final songs = await DatabaseService.getAllSongsSortedByDate(
-          inAlbum: _filterInAlbum ? true : null);
+        inAlbum: _filterInAlbum ? true : null,
+      );
       final albums = await DatabaseService.getAlbums();
       if (!mounted) return;
       setState(() {
@@ -41,8 +43,9 @@ class _TracksScreenState extends ConsumerState<TracksScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Ошибка: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Ошибка: $e')));
     }
   }
 
@@ -53,17 +56,20 @@ class _TracksScreenState extends ConsumerState<TracksScreen> {
         title: const Text('Все треки'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Настройки Telegram',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+          IconButton(
             icon: const Icon(Icons.album),
             tooltip: 'Альбомы',
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AlbumsScreen()),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.file_open),
-            tooltip: 'Импортировать трек',
-            onPressed: _importTrack,
           ),
         ],
       ),
@@ -88,61 +94,54 @@ class _TracksScreenState extends ConsumerState<TracksScreen> {
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
                 : _songs.isEmpty
-                    ? const Center(child: Text('Треков нет'))
-                    : ListView.builder(
-                        itemCount: _songs.length,
-                        itemBuilder: (_, i) {
-                          final song = _songs[i];
-                          final albumTitle =
-                              song.albumId != null
-                                  ? _albums
-                                      .firstWhere((a) => a.id == song.albumId,
-                                          orElse: () => Album(
-                                              title: '',
-                                              artist: '',
-                                              createdAt: DateTime.now()))
-                                      .title
-                                  : '';
-                          final subtitleParts = [
-                            if (song.artist != null && song.artist!.isNotEmpty)
-                              song.artist!,
-                            if (albumTitle.isNotEmpty) albumTitle,
-                          ];
-                          final subtitle = subtitleParts.join(' • ');
+                ? const Center(child: Text('Треков нет'))
+                : ListView.builder(
+                    itemCount: _songs.length,
+                    itemBuilder: (_, i) {
+                      final song = _songs[i];
+                      // Ищем альбом для отображения
+                      final albumTitle = song.albumId != null
+                          ? _albums
+                                .firstWhere(
+                                  (a) => a.id == song.albumId,
+                                  orElse: () => Album(title: ''),
+                                )
+                                .title
+                          : '';
+                      final subtitle = albumTitle.isNotEmpty
+                          ? albumTitle
+                          : null;
 
-                          return ListTile(
-                            title: Text(song.title),
-                            subtitle: subtitle.isNotEmpty
-                                ? Text(subtitle)
-                                : null,
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.file_download),
-                                  tooltip: 'Экспорт',
-                                  onPressed: () =>
-                                      ExportImportService.exportSingleSong(
-                                          song),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
-                                  tooltip: 'Удалить',
-                                  onPressed: () => _confirmDelete(song),
-                                ),
-                              ],
+                      return ListTile(
+                        title: Text(song.title),
+                        subtitle: subtitle != null ? Text(subtitle) : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.send),
+                              tooltip: 'Отправить в Telegram',
+                              onPressed: () => _sendSong(song),
                             ),
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => SongEditorScreen(
-                                    song: song, albumId: song.albumId),
-                              ),
-                            ).then((_) => _loadData()),
-                          );
-                        },
-                      ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              tooltip: 'Удалить',
+                              onPressed: () => _confirmDelete(song),
+                            ),
+                          ],
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SongEditorScreen(
+                              song: song,
+                              albumId: song.albumId,
+                            ),
+                          ),
+                        ).then((_) => _loadData()),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -150,18 +149,34 @@ class _TracksScreenState extends ConsumerState<TracksScreen> {
         child: const Icon(Icons.add),
         onPressed: () => Navigator.push(
           context,
-          MaterialPageRoute(
-              builder: (_) => SongEditorScreen(albumId: null)),
+          MaterialPageRoute(builder: (_) => SongEditorScreen(albumId: null)),
         ).then((_) => _loadData()),
       ),
     );
   }
 
-  Future<void> _importTrack() async {
-    final song = await ExportImportService.importSingleSong();
-    if (song != null && mounted) {
-      await DatabaseService.insertSong(song);
-      _loadData();
+  Future<void> _sendSong(Song song) async {
+    try {
+      final ok = await ExportImportService.sendSongToTelegram(song);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ok
+                ? 'Трек отправлен'
+                : 'Ошибка отправки. Проверьте интернет и настройки.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Ошибка сети: невозможно связаться с Telegram.\nПопробуйте включить VPN.',
+          ),
+        ),
+      );
     }
   }
 
@@ -173,16 +188,17 @@ class _TracksScreenState extends ConsumerState<TracksScreen> {
         content: Text('Удалить "${song.title}"?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Отмена')),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Отмена'),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child:
-                  const Text('Удалить', style: TextStyle(color: Colors.red))),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );
-    if (confirm == true && mounted) {
+    if (confirm == true) {
       await DatabaseService.deleteSong(song.id!);
       _loadData();
     }

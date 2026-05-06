@@ -21,33 +21,25 @@ class AlbumSongsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(albumTitle),
         actions: [
+          // Отправить весь альбом в Telegram
           IconButton(
-            icon: const Icon(Icons.upload_file),
-            tooltip: 'Экспорт альбома',
+            icon: const Icon(Icons.send),
+            tooltip: 'Отправить альбом в Telegram',
             onPressed: () async {
               final songs = await ref.read(songsForAlbumProvider(albumId).future);
-              await ExportImportService.exportAlbum(
-                Album(id: albumId, title: albumTitle, artist: ''),
-                songs,
-              );
+              await ExportImportService.sendAlbumToTelegram(songs);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Альбом отправлен')),
+                );
+              }
             },
           ),
+          // Добавить существующий трек без альбома
           IconButton(
             icon: const Icon(Icons.playlist_add),
             tooltip: 'Добавить существующий трек',
             onPressed: () => _addExistingSong(context, ref),
-          ),
-          IconButton(
-            icon: const Icon(Icons.file_open),
-            tooltip: 'Импорт трека',
-            onPressed: () async {
-              final song = await ExportImportService.importSingleSong();
-              if (song != null) {
-                song.albumId = albumId;
-                await DatabaseService.insertSong(song);
-                ref.invalidate(songsForAlbumProvider(albumId));
-              }
-            },
           ),
         ],
       ),
@@ -60,33 +52,34 @@ class AlbumSongsScreen extends ConsumerWidget {
                   final song = songs[i];
                   return ListTile(
                     title: Text(song.title),
-                    subtitle: Text(song.artist ?? ''),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.file_download),
-                          tooltip: 'Экспорт трека',
-                          onPressed: () =>
-                              ExportImportService.exportSingleSong(song),
+                          icon: const Icon(Icons.send),
+                          tooltip: 'Отправить в Telegram',
+                          onPressed: () async {
+                            final ok = await ExportImportService.sendSongToTelegram(song);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(ok ? 'Отправлено' : 'Ошибка')),
+                              );
+                            }
+                          },
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, color: Colors.red),
-                          tooltip: 'Удалить трек',
+                          tooltip: 'Удалить',
                           onPressed: () => _confirmDeleteSong(context, ref, song),
                         ),
                       ],
                     ),
-                    onTap: () =>
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                SongEditorScreen(song: song, albumId: albumId),
-                          ),
-                        ).then(
-                          (_) => ref.invalidate(songsForAlbumProvider(albumId)),
-                        ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SongEditorScreen(song: song, albumId: albumId),
+                      ),
+                    ).then((_) => ref.invalidate(songsForAlbumProvider(albumId))),
                   );
                 },
               ),
@@ -131,7 +124,6 @@ class AlbumSongsScreen extends ConsumerWidget {
                     final isSelected = selected.contains(song);
                     return CheckboxListTile(
                       title: Text(song.title),
-                      subtitle: Text(song.artist ?? ''),
                       value: isSelected,
                       onChanged: (val) {
                         setState(() {

@@ -6,7 +6,7 @@ import '../models/section.dart';
 
 class DatabaseService {
   static Database? _database;
-  static const _databaseVersion = 3;
+  static const _databaseVersion = 4;
 
   static Future<Database> get database async {
     if (_database != null) return _database!;
@@ -26,28 +26,25 @@ class DatabaseService {
     );
   }
 
-  static Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE albums (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        artist TEXT,
-        created_at TEXT NOT NULL
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE songs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        album_id INTEGER,
-        title TEXT NOT NULL,
-        artist TEXT,
-        raw_text TEXT DEFAULT '',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE SET NULL
-      )
-    ''');
+static Future<void> _onCreate(Database db, int version) async {
+  await db.execute('''
+    CREATE TABLE albums (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  ''');
+  await db.execute('''
+    CREATE TABLE songs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      album_id INTEGER,
+      title TEXT NOT NULL,
+      raw_text TEXT DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (album_id) REFERENCES albums(id) ON DELETE SET NULL
+    )
+  ''');
 
     await db.execute('''
       CREATE TABLE sections (

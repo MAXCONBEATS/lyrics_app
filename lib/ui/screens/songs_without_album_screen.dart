@@ -35,19 +35,6 @@ class _SongsWithoutAlbumScreenState
     return Scaffold(
       appBar: AppBar(
         title: const Text('Треки без альбома'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.file_open),
-            tooltip: 'Импортировать трек',
-            onPressed: () async {
-              final song = await ExportImportService.importSingleSong();
-              if (song != null && mounted) {
-                await DatabaseService.insertSong(song);
-                _refresh();
-              }
-            },
-          ),
-        ],
       ),
       body: FutureBuilder<List<Song>>(
         future: _songsFuture,
@@ -68,15 +55,22 @@ class _SongsWithoutAlbumScreenState
               final song = songs[i];
               return ListTile(
                 title: Text(song.title),
-                subtitle: Text(song.artist ?? ''),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.file_download),
-                      tooltip: 'Экспорт',
-                      onPressed: () =>
-                          ExportImportService.exportSingleSong(song),
+                      icon: const Icon(Icons.send),
+                      tooltip: 'Отправить в Telegram',
+                      onPressed: () async {
+                        final ok =
+                            await ExportImportService.sendSongToTelegram(song);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                                  Text(ok ? 'Отправлено' : 'Ошибка отправки')),
+                        );
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.drive_file_move),
@@ -86,7 +80,8 @@ class _SongsWithoutAlbumScreenState
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       tooltip: 'Удалить',
-                      onPressed: () => _confirmDeleteSong(song.id!, song.title),
+                      onPressed: () =>
+                          _confirmDeleteSong(song.id!, song.title),
                     ),
                   ],
                 ),
@@ -94,7 +89,8 @@ class _SongsWithoutAlbumScreenState
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => SongEditorScreen(song: song, albumId: null),
+                      builder: (_) =>
+                          SongEditorScreen(song: song, albumId: null),
                     ),
                   ).then((_) => _refresh());
                 },
@@ -125,10 +121,12 @@ class _SongsWithoutAlbumScreenState
       builder: (ctx) {
         return SimpleDialog(
           title: const Text('Выберите альбом'),
-          children: albums.map((a) => SimpleDialogOption(
-            onPressed: () => Navigator.pop(ctx, a),
-            child: Text(a.title),
-          )).toList(),
+          children: albums
+              .map((a) => SimpleDialogOption(
+                    onPressed: () => Navigator.pop(ctx, a),
+                    child: Text(a.title),
+                  ))
+              .toList(),
         );
       },
     );
@@ -145,11 +143,13 @@ class _SongsWithoutAlbumScreenState
         title: const Text('Удалить песню?'),
         content: Text('Удалить "$title"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Отмена')),
           TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Удалить', style: TextStyle(color: Colors.red)),
-          ),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Отмена')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child:
+                  const Text('Удалить', style: TextStyle(color: Colors.red))),
         ],
       ),
     );

@@ -10,8 +10,8 @@ class AlbumsNotifier extends AsyncNotifier<List<Album>> {
     return DatabaseService.getAlbums();
   }
 
-  Future<void> addAlbum(String title, String? artist) async {
-    final album = Album(title: title, artist: artist);
+  Future<void> addAlbum(String title) async {
+    final album = Album(title: title);
     await DatabaseService.insertAlbum(album);
     ref.invalidateSelf();
   }

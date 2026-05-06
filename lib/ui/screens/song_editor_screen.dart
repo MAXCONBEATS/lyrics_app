@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/song.dart';
 import '../../models/album.dart';
 import '../../services/database_service.dart';
+import '../../services/export_import_service.dart';
 import '../../providers/songs_provider.dart';
 
 const _sectionLabels = [
@@ -22,7 +23,6 @@ class SongEditorScreen extends ConsumerStatefulWidget {
 
 class _SongEditorScreenState extends ConsumerState<SongEditorScreen> {
   late TextEditingController titleCtrl;
-  late TextEditingController artistCtrl;
   late TextEditingController lyricsCtrl;
   final _formKey = GlobalKey<FormState>();
   List<Album> _albums = [];
@@ -34,7 +34,6 @@ class _SongEditorScreenState extends ConsumerState<SongEditorScreen> {
   void initState() {
     super.initState();
     titleCtrl = TextEditingController(text: widget.song?.title ?? '');
-    artistCtrl = TextEditingController(text: widget.song?.artist ?? '');
 
     String initialLyrics = widget.song?.rawText ?? '';
     if (initialLyrics.isEmpty &&
@@ -59,7 +58,6 @@ class _SongEditorScreenState extends ConsumerState<SongEditorScreen> {
   @override
   void dispose() {
     titleCtrl.dispose();
-    artistCtrl.dispose();
     lyricsCtrl.dispose();
     super.dispose();
   }
@@ -90,7 +88,6 @@ class _SongEditorScreenState extends ConsumerState<SongEditorScreen> {
       id: widget.song?.id,
       albumId: _selectedAlbumId,
       title: titleCtrl.text,
-      artist: artistCtrl.text,
       sections: [],
       rawText: lyricsCtrl.text,
       createdAt: widget.song?.createdAt,
@@ -135,12 +132,33 @@ class _SongEditorScreenState extends ConsumerState<SongEditorScreen> {
     }
   }
 
+  Future<void> _sendToTelegram() async {
+    final song = Song(
+      id: widget.song!.id,
+      albumId: widget.song!.albumId,
+      title: titleCtrl.text,
+      sections: [],
+      rawText: lyricsCtrl.text,
+    );
+    final ok = await ExportImportService.sendSongToTelegram(song);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? 'Отправлено' : 'Ошибка отправки')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Редактировать песню' : 'Новая песня'),
         actions: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.send),
+              tooltip: 'Отправить в Telegram',
+              onPressed: _sendToTelegram,
+            ),
           if (isEditing)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
@@ -164,33 +182,6 @@ class _SongEditorScreenState extends ConsumerState<SongEditorScreen> {
                       decoration: const InputDecoration(labelText: 'Название'),
                       validator: (v) =>
                           v!.isEmpty ? 'Введите название' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    // Поле исполнителя с кнопкой MAXCON
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          controller: artistCtrl,
-                          decoration:
-                              const InputDecoration(labelText: 'Исполнитель'),
-                          onChanged: (_) => setState(() {}),
-                        ),
-                        if (artistCtrl.text != 'MAXCON')
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: TextButton.icon(
-                              icon: const Icon(Icons.mic, size: 20),
-                              label: const Text('MAXCON'),
-                              onPressed: () {
-                                artistCtrl.text = 'MAXCON';
-                                artistCtrl.selection = TextSelection.collapsed(
-                                    offset: artistCtrl.text.length);
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                      ],
                     ),
                     const SizedBox(height: 12),
                     // Выбор альбома

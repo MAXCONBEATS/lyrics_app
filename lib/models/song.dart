@@ -3,7 +3,6 @@ class Song {
   final int? id;
   int? albumId;
   final String title;
-  final String? artist;
   final List<SongSection> sections;   // оставляем для обратной совместимости
   final String? rawText;              // новое поле – весь текст с метками
   final DateTime createdAt;
@@ -13,7 +12,6 @@ class Song {
     this.id,
     this.albumId,
     required this.title,
-    this.artist,
     required this.sections,
     this.rawText,
     DateTime? createdAt,
@@ -23,7 +21,6 @@ class Song {
 
   Map<String, dynamic> toJson() => {
         'title': title,
-        'artist': artist,
         'sections': sections.map((s) => s.toJson()).toList(),
         'rawText': rawText,
         'createdAt': createdAt.toIso8601String(),
@@ -33,7 +30,6 @@ class Song {
   factory Song.fromJson(int? albumId, Map<String, dynamic> json) => Song(
         albumId: albumId,
         title: json['title'],
-        artist: json['artist'],
         sections: (json['sections'] as List)
             .map((s) => SongSection.fromJson(s))
             .toList(),
@@ -46,7 +42,6 @@ class Song {
         'id': id,
         'album_id': albumId,
         'title': title,
-        'artist': artist,
         'raw_text': rawText ?? '',
         'created_at': createdAt.toIso8601String(),
         'updated_at': updatedAt.toIso8601String(),
@@ -56,7 +51,6 @@ class Song {
         id: map['id'],
         albumId: map['album_id'],
         title: map['title'],
-        artist: map['artist'],
         sections: sections ?? [],
         rawText: map['raw_text'] is String ? map['raw_text'] : null,
         createdAt: DateTime.parse(map['created_at']),
