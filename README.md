@@ -48,11 +48,11 @@ lyrics_app/
 ```
 ## 📦 Релизы
 
-Добавлен функционал для работы с ТГ каналами: **[v1.00](https://github.com/MAXCONBEATS/lyrics_app/releases/tag/v2.0)**
+Добавлен функционал для работы с ТГ каналами: **[v2.00](https://github.com/MAXCONBEATS/lyrics_app/releases/tag/v2.0)**
 
 | Платформа | Файл |
 |-----------|------|
-| Android   | [`lyric_app.apk`](([https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/lyric_app.apk](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/lyric_app.apk))) (78.4 MB) |
+| Android   | [`lyric_app.apk`](([https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.0/lyric_app.apk])) (78.4 MB) |
 | Windows   | [`Lyrics_App.zip`](https://github.com/MAXCONBEATS/lyrics_app/releases/download/v2.00/Lyrics_App.zip) (12.8 MB) |
 
 Контрольные суммы (SHA256) указаны в описании релиза для проверки целостности файлов.
